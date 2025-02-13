@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lanzar Dados</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    .imagenes_dados {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .imagenes_dados img {
+      width: 100px;
+      height: 100px;
+    }
+
+    .resultado {
+      margin-top: 20px;
+      font-size: 1.5em;
+    }
+
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    #resultadosGuardados {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Lanzador de Dados</h1>
+  <div class="imagenes_dados">
+    <img id="dado1" src="img/1.png" alt="Dado 1">
+    <img id="dado2" src="img/2.png" alt="Dado 2">
+  </div>
+
+  <table>
+    <tr>
+      <th>Dado 1</th>
+      <th>Dado 2</th>
+      <th>Resultado</th>
+    </tr>
+    <tr>
+      <td id="valorDado1">-</td>
+      <td id="valorDado2">-</td>
+      <td id="resultado">0</td>
+    </tr>
+  </table>
+
+  <button onclick="lanzarDados()">Lanzar Dados</button>
+  <button onclick="mostrarResultados()">Mostrar Resultados</button>
+
+  <div id="resultadosGuardados">
+    <h2>Resultados Guardados</h2>
+    <table id="tablaResultados">
+      <tr>
+        <th>Dado 1</th>
+        <th>Dado 2</th>
+        <th>Resultado</th>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    function lanzarDados() {
+      // Generar dos números aleatorios entre 1 y 6
+      const valordado1 = Math.floor(Math.random() * 6) + 1;
+      const valordado2 = Math.floor(Math.random() * 6) + 1;
+
+      // Actualizar las imágenes de los dados con las imágenes correspondientes
+      document.getElementById('dado1').src = `img/${valordado1}.png`;
+      document.getElementById('dado2').src = `img/${valordado2}.png`;
+
+      // Actualizar los valores mostrados en la tabla
+      document.getElementById('valorDado1').textContent = valordado1;
+      document.getElementById('valorDado2').textContent = valordado2;
+
+      // Sumar los valores de los dos dados y mostrar el resultado en la tabla
+      const suma = valordado1 + valordado2;
+      document.getElementById('resultado').textContent = suma;
+
+      // Enviar los datos a la API
+      guardarEnApi(valordado1, valordado2, suma);
+    }
+
+    async function guardarEnApi(dado1, dado2, suma) {
+      try {
+        const response = await fetch('https://crudcrud.com/api/a74e2099bda240b2a6c13ee895abf0a3/dadoresultado', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dado1: dado1,
+            dado2: dado2,
+            suma: suma
+          })
+        });
+
+        if (response.ok) {
+          console.log('Datos guardados correctamente');
+        } else {
+          console.error('Error al guardar en la API:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error en la solicitud a la API:', error);
+      }
+    }
+
+    async function mostrarResultados() {
+      // Limpiar tabla de resultados previos
+      const tablaResultados = document.getElementById('tablaResultados');
+      tablaResultados.innerHTML = `
+        <tr>
+          <th>Dado 1</th>
+          <th>Dado 2</th>
+          <th>Resultado</th>
+        </tr>
+      `;
+
+      try {
+        const response = await fetch('https://crudcrud.com/api/a74e2099bda240b2a6c13ee895abf0a3/dadoresultado');
+        const resultados = await response.json();
+
+        if (resultados.length > 0) {
+          resultados.forEach(result => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${result.dado1}</td>
+              <td>${result.dado2}</td>
+              <td>${result.suma}</td>
+            `;
+            tablaResultados.appendChild(row);
+          });
+        } else {
+          console.log('No hay resultados guardados.');
+        }
+      } catch (error) {
+        console.error('Error al obtener los resultados:', error);
+      }
+    }
+  </script>
+</body>
+
+</html>
